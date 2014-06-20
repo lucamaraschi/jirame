@@ -1,5 +1,5 @@
 var request = require('request');
-var auth = require('./config.json').auth;
+var config = require('./config');
 
 var url = 'https://icemobile.atlassian.net/rest/api/latest/project';
 var callback = function(err, result, body) {
@@ -7,7 +7,9 @@ var callback = function(err, result, body) {
     console.log(body);
 };
 
+config.setCredentials('user', 'pass');
+
 request.get({
     url: url,
-    auth: auth
+    auth: config.getCredentials()
 }, callback);
