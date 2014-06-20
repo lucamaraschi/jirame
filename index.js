@@ -13,17 +13,30 @@ if (!config.getCredentials) {
 program
     .command('login')
     .description('Couple jirame to your Jira account')
-    .action(login);
+    .action(function() {
+        login();
+    });
 
 program
     .command('project')
     .description('Choose a project')
-    .action(chooseProject);
+    .action(function() {
+        chooseProject();
+    });
 
 program
-    .command('task')
+    .command('tasks')
     .description('List all tasks')
-    .action(listTasks);
+    .action(function() {
+        listTasks();
+    });
+
+program
+    .command('start')
+    .description('Start a task')
+    .action(function() {
+        startTask();
+    });
 
 function login(callback) {
     promptly.prompt('Username: ', function(err, user){
@@ -84,6 +97,7 @@ function chooseProject(callback) {
 
 function listTasks(callback) {
     var projectId = config.get('projectId');
+    var tasks = [];
     if (!projectId) {
         return console.log('choose a project to join first!');
     }
@@ -95,7 +109,7 @@ function listTasks(callback) {
         }
         var issueList = JSON.parse(body).issues;
         issueList.forEach(function(issue) {
-            console.log('- ' + issue.key + ': ' + issue.fields.summary);
+            console.log('- ' + issue.fields.summary);
             var subtasks = issue.fields.subtasks;
             if (!subtasks) {
                 return;
@@ -103,11 +117,88 @@ function listTasks(callback) {
             subtasks.forEach(function(subtask) {
                 var status = subtask.fields.status.name;
                 if (status !== 'Closed' && status !== 'Resolved' && status !== 'Verify') {
+                    tasks.push(subtask);
                     console.log('    * ' + subtask.key + ': ' + subtask.fields.summary);
                 }
             });
         });
+        if (callback) {
+            callback(null, tasks);
+        }
     };
+
+    request.get({
+        url: url,
+        auth: config.getCredentials()
+    }, parseResponse);
+}
+
+function startTask(callback) {
+    listTasks(function(err, tasks) {
+        if (err) {
+            return console.log(err);
+        }
+        var taskCodes = tasks.map(function(task) {
+            return task.key;
+        });
+        console.log(taskCodes);
+        promptly.choose('Which task do you want to start?', taskCodes, function(err, chosenTask) {
+            if (err) {
+                return console.log('invalid task');
+            }
+            var task = _.findWhere(tasks, { key: chosenTask });
+            var taskId = task.id;
+            config.set('taskId', taskId);
+
+            parseResponse = function(err, result) {
+                if (err) {
+                    return console.log(err);
+                }
+            };
+
+            getTransitions(taskId, function(err, transitions) {
+                var transitionId = transitions['In Progress'];
+
+                if (err) {
+                    return console.log(err);
+                }
+
+                var url = 'https://icemobile.atlassian.net/rest/api/2/issue/'+taskId+'/transitions';
+
+                var reqBody = {
+                    transition: {
+                        id: transitionId
+                    }
+                };
+
+                request.post({
+                    url: url,
+                    json: reqBody,
+                    auth: config.getCredentials()
+                }, parseResponse);
+                });
+
+        });
+    });
+}
+
+function getTransitions(issueId, callback) {
+    var url = 'https://icemobile.atlassian.net/rest/api/2/issue/'+issueId+'/transitions';
+
+    function parseResponse(err, result, body) {
+        body = JSON.parse(body);
+
+        if (err) {
+            return callback(err);
+        }
+        var transitions = {};
+
+        body.transitions.forEach(function(transition) {
+            transitions[transition.name] = transition.id;
+        });
+
+        callback(null, transitions);
+    }
 
     request.get({
         url: url,
