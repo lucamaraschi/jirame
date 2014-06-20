@@ -1,3 +1,6 @@
+#Personal configuration
+config.json
+
 #Genral MacOSX
 .DS_Store
 .AppleDouble
