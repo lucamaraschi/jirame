@@ -20,7 +20,7 @@ function login() {
         if (err) {
             return console.log('invalid username');
         }
-        promptly.prompt('Password: ', function(err, pass) {
+        promptly.password('Password: ', function(err, pass) {
             if (err) {
                 return console.log('invalid password');
             }

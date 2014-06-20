@@ -1,6 +1,7 @@
 var crypto = require('crypto');
 var path = require('path');
 var fs = require('fs');
+var CONFIG_PATH = path.join(process.env.HOME, '.jirabull.json');
 
 function setCredentials(user, pass) {
     var auth = {
@@ -22,17 +23,16 @@ function getCredentials() {
 }
 
 function getConfig() {
-    var configPath = path.join(process.env.HOME, '.jirabull.json');
-    return require(configPath);
+    return require(CONFIG_PATH);
 }
 
 function setConfig(config) {
-    var configPath = path.join(process.env.HOME, '.jirabull.json');
     var configJson = JSON.stringify(config, null, 4);
-    fs.writeFileSync(configPath, configJson);
+    fs.writeFileSync(CONFIG_PATH, configJson);
 }
 
 function setConfigOption(key, value) {
+    ensureConfigFile();
     var config = getConfig();
     config[key] = value;
     setConfig(config);
@@ -54,6 +54,12 @@ function decrypt(text){
     var dec = decipher.update(text,'hex','utf8');
     dec += decipher.final('utf8');
     return dec;
+}
+
+function ensureConfigFile() {
+    if (!fs.existsSync(CONFIG_PATH)) {
+        fs.writeFileSync(CONFIG_PATH, '{}');
+    }
 }
 
 module.exports = {
