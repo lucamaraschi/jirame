@@ -1,0 +1,24 @@
+box: wercker/nodejs
+build:
+  steps:
+    - npm-install
+    - npm-test
+deploy:
+  steps:
+    - script:
+        name: setup npmrc
+        code: echo "_auth = $NPM_KEY" >> ~/.npmrc; echo "email = $NPM_EMAIL" >> ~/.npmrc
+    - script:
+        name: npm publish
+        code: npm publish
+  after-steps:
+    - npm-install
+    - script:
+        name: install gulp globally
+        code: sudo npm install -g gulp
+    - script:
+        name: check code coverage
+        code: |-
+            gulp coverage
+            sudo npm install -g codeclimate-test-reporter
+            codeclimate < coverage/lcov.info
