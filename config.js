@@ -8,6 +8,7 @@ function setCredentials(user, pass) {
         user: user,
         pass: encrypt(pass)
     };
+    setConfig(config);
 }
 
 function getCredentials() {
