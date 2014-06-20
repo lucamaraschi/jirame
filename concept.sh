@@ -7,3 +7,5 @@ jira task done #stop working on active task. Task is moved to done.
 jira task done --verify #stops working on active task. Task is moved to verify.
 jira list #show list of tasks in current sprint.
 jira list --all #show list of all tasks (in sprint and out).
+jira list --me #show my tasks for today.
+jira board #show the board.
