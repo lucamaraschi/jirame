@@ -18,8 +18,9 @@
   "homepage": "https://github.com/lucamaraschi/jirame",
   "dependencies": {
     "commander": "^2.2.0",
-    "terminal-menu": "~0.3.2",
     "promptly": "^0.2.0",
-    "request": "^2.36.0"
+    "request": "^2.36.0",
+    "terminal-menu": "~0.3.2",
+    "underscore": "^1.6.0"
   }
 }
