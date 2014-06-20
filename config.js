@@ -3,22 +3,21 @@ var path = require('path');
 var fs = require('fs');
 
 function setCredentials(user, pass) {
-    var config = getConfig();
-    config.auth = {
+    var auth = {
         user: user,
         pass: encrypt(pass)
     };
-    setConfig(config);
+    setConfigOption('auth', auth);
 }
 
 function getCredentials() {
-    var config = getConfig();
-    if (!config.auth) {
-        return false;
+    var auth = getConfigOption('auth');
+    if (!auth) {
+        return null;
     }
     return {
-        user: config.auth.user,
-        pass: decrypt(config.auth.pass)
+        user: auth.user,
+        pass: decrypt(auth.pass)
     };
 }
 
@@ -31,6 +30,16 @@ function setConfig(config) {
     var configPath = path.join(process.env.HOME, '.jirabull.json');
     var configJson = JSON.stringify(config, null, 4);
     fs.writeFileSync(configPath, configJson);
+}
+
+function setConfigOption(key, value) {
+    var config = getConfig();
+    config[key] = value;
+    setConfig(config);
+}
+
+function getConfigOption(key) {
+    return getConfig()[key];
 }
 
 function encrypt(text){
@@ -48,8 +57,8 @@ function decrypt(text){
 }
 
 module.exports = {
-    get: getConfig,
-    set: setConfig,
+    get: getConfigOption,
+    set: setConfigOption,
     getCredentials: getCredentials,
     setCredentials: setCredentials
 };

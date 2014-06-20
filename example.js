@@ -7,8 +7,6 @@ var callback = function(err, result, body) {
     console.log(body);
 };
 
-config.setCredentials('user', 'pass');
-
 request.get({
     url: url,
     auth: config.getCredentials()
